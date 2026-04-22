@@ -47,34 +47,33 @@
         }
         initLIFF();
 
-        async function sendTicket() {
-            const name = document.getElementById('userName').value;
-            const detail = document.getElementById('issueDetail').value;
-            
-            if(!detail) return alert("กรุณากรอกรายละเอียดปัญหา");
+       async function sendTicket() {
+    const name = document.getElementById('userName').value;
+    const detail = document.getElementById('issueDetail').value;
+    
+    // ดึง userId จาก LINE
+    const profile = await liff.getProfile();
+    const userId = profile.userId;
 
-            const btn = document.getElementById('submitBtn');
-            btn.innerText = "กำลังส่งข้อมูล...";
-            btn.disabled = true;
-            const finalUrl = `${scriptUrl}?name=${encodeURIComponent(name)}&detail=${encodeURIComponent(detail)}&userId=${userId}`;
+    if(!detail) return alert("กรุณากรอกรายละเอียดปัญหา");
 
-            // ส่งข้อมูลแบบ GET เพื่อเลี่ยงปัญหา CORS
-            const finalUrl = `${scriptUrl}?name=${encodeURIComponent(name)}&detail=${encodeURIComponent(detail)}`;
+    const btn = document.getElementById('submitBtn');
+    btn.innerText = "กำลังส่งข้อมูล...";
+    btn.disabled = true;
 
-            try {
-                await fetch(finalUrl, {
-                    method: 'GET',
-                    mode: 'no-cors'
-                });
-                
-                alert("ส่งข้อมูลสำเร็จ! เราจะรีบดำเนินการให้ครับ");
-                liff.closeWindow(); // ปิดหน้าต่าง LIFF ทันที
-            } catch (e) {
-                alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
-                btn.innerText = "ส่งข้อมูลแจ้งซ่อม";
-                btn.disabled = false;
-            }
-        }
+    // เพิ่ม &userId= เข้าไปใน URL
+    const finalUrl = `${scriptUrl}?name=${encodeURIComponent(name)}&detail=${encodeURIComponent(detail)}&userId=${userId}`;
+
+    try {
+        await fetch(finalUrl, { method: 'GET', mode: 'no-cors' });
+        alert("ส่งข้อมูลสำเร็จ! บอทจะแจ้งยืนยันในแชทของคุณ");
+        liff.closeWindow();
+    } catch (e) {
+        alert("เกิดข้อผิดพลาด");
+        btn.innerText = "ส่งข้อมูลแจ้งซ่อม";
+        btn.disabled = false;
+    }
+}
     </script>
 </body>
 </html>
