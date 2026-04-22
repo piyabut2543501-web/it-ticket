@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Ticket System</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f0f2f5; display: flex; justify-content: center; }
+        .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { color: #00b900; text-align: center; margin-bottom: 25px; }
+        label { font-size: 14px; color: #666; }
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0 20px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; background: #f9f9f9; }
+        button { width: 100%; padding: 15px; background-color: #00b900; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background-color: #009e00; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🎫 แจ้งปัญหาไอที</h2>
+        <label>ชื่อผู้แจ้ง (ดึงจาก LINE)</label>
+        <input type="text" id="userName" readonly placeholder="กำลังโหลดชื่อ...">
+        <label>รายละเอียดปัญหา</label>
+        <textarea id="issueDetail" rows="4" placeholder="ระบุอาการเสีย เช่น ปริ้นไม่ออก, เข้าเน็ตไม่ได้"></textarea>
+        <button onclick="sendTicket()">ส่งข้อมูลแจ้งซ่อม</button>
+    </div>
+
+    <script>
+        const liffId = "ใส่_LIFF_ID_ของคุณ"; // เดี๋ยวเอาจากหน้า LINE มาใส่
+        const scriptUrl = "ใส่_WEB_APP_URL_จาก_APPS_SCRIPT"; // เดี๋ยวเอาจาก Google Sheets มาใส่
+
+        async function initLIFF() {
+            await liff.init({ liffId: liffId });
+            if (liff.isLoggedIn()) {
+                const profile = await liff.getProfile();
+                document.getElementById('userName').value = profile.displayName;
+            } else {
+                liff.login();
+            }
+        }
+        initLIFF();
+
+        async function sendTicket() {
+            const name = document.getElementById('userName').value;
+            const detail = document.getElementById('issueDetail').value;
+            if(!detail) return alert("กรุณากรอกรายละเอียดปัญหา");
+
+            const btn = document.querySelector('button');
+            btn.innerText = "กำลังส่ง...";
+            btn.disabled = true;
+
+            try {
+                await fetch(scriptUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ name: name, detail: detail })
+                });
+                alert("ส่งข้อมูลเรียบร้อยแล้ว!");
+                liff.closeWindow();
+            } catch (e) {
+                alert("เกิดข้อผิดพลาด กรุณาลองใหม่");
+                btn.innerText = "ส่งข้อมูลแจ้งซ่อม";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
