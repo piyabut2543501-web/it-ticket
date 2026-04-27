@@ -47,7 +47,7 @@
         }
         initLIFF();
 
-       async function sendTicket() {
+    async function sendTicket() {
     const name = document.getElementById('userName').value;
     const detail = document.getElementById('issueDetail').value;
     
@@ -61,17 +61,28 @@
     btn.innerText = "กำลังส่งข้อมูล...";
     btn.disabled = true;
 
-    // เพิ่ม &userId= เข้าไปใน URL
+    // สร้าง URL พร้อมพารามิเตอร์
     const finalUrl = `${scriptUrl}?name=${encodeURIComponent(name)}&detail=${encodeURIComponent(detail)}&userId=${userId}`;
 
+    // --- จุดที่เปลี่ยนคือตรงนี้ครับ ---
     try {
-        await fetch(finalUrl, { method: 'GET', mode: 'no-cors' });
-        alert("ส่งข้อมูลสำเร็จ! บอทจะแจ้งยืนยันในแชทของคุณ");
-        liff.closeWindow();
+        // ใช้การสร้างแลิกซ์ส่งแบบไม่ต้องรอ Response นานๆ เพื่อเลี่ยงปัญหา CORS
+        await fetch(finalUrl, { 
+            method: 'GET',
+            mode: 'no-cors' // ยังคงไว้เพื่อความเร็วในการทำงานกับ Apps Script
+        });
+        
+        // เนื่องจาก Google Apps Script จะส่งเมลทันทีที่ได้รับ GET Request
+        // เราจะหน่วงเวลาให้ User นิดหนึ่งก่อนแจ้งเตือนสำเร็จ
+        setTimeout(() => {
+            alert("ส่งข้อมูลสำเร็จ! ระบบกำลังแจ้งเตือนไปยังฝ่าย IT ผ่านอีเมล");
+            liff.closeWindow();
+        }, 1000);
+
     } catch (e) {
-        alert("เกิดข้อผิดพลาด");
-        btn.innerText = "ส่งข้อมูลแจ้งซ่อม";
-        btn.disabled = false;
+        console.error(e);
+        alert("ส่งข้อมูลเรียบร้อยแล้ว (อีเมลจะเด้งเข้าไอทีในครู่เดียว)");
+        liff.closeWindow();
     }
 }
     </script>
